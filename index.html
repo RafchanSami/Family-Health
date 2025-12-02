@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Family Health — Green 3D Theme</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand-3d">
+        <div class="brand-front">Family<span>Health</span></div>
+        <div class="brand-shadow"></div>
+      </div>
+      <div class="tag">পরিবারের স্বাস্থ্য</div>
+    </header>
+
+    <main class="main-grid">
+      <section class="panel panel-left">
+        <h2>সদস্য যোগ করুন</h2>
+
+        <form id="memberForm" class="form-3d" onsubmit="return false;">
+          <div class="row">
+            <label>নাম</label>
+            <input id="name" type="text" placeholder="নাম লিখুন" required />
+          </div>
+
+          <div class="row small">
+            <div>
+              <label>বয়স</label>
+              <input id="age" type="number" min="0" placeholder="বয়স" required />
+            </div>
+            <div>
+              <label>রক্ত গ্রুপ</label>
+              <input id="blood" type="text" placeholder="A+, B+" />
+            </div>
+          </div>
+
+          <div class="row small">
+            <div>
+              <label>উচ্চতা (সেমি)</label>
+              <input id="height" type="number" min="0" placeholder="eg. 170" required />
+            </div>
+            <div>
+              <label>ওজন (কেজি)</label>
+              <input id="weight" type="number" min="0" placeholder="eg. 65" required />
+            </div>
+          </div>
+
+          <div class="row">
+            <label>বৈশিষ্ট্য / নোট (ঐচ্ছিক)</label>
+            <textarea id="notes" placeholder="যেমন: ডায়াবেটিস / অ্যালার্জি"></textarea>
+          </div>
+
+          <div class="row file">
+            <label>মেডিকেল রিপোর্ট (ছবি/ফাইল) — ঐচ্ছিক</label>
+            <input id="reportFile" type="file" accept="image/*,application/pdf" />
+          </div>
+
+          <div class="actions">
+            <button id="saveBtn" class="btn primary">সেভ করুন</button>
+            <button id="resetBtn" class="btn ghost" type="button">ফর্ম ক্লিয়ার</button>
+          </div>
+
+          <div class="bmi-box">
+            <div>Calculated BMI</div>
+            <div id="bmiValue">—</div>
+            <div id="bmiCategory" class="bmi-cat">—</div>
+          </div>
+        </form>
+      </section>
+
+      <section class="panel panel-right">
+        <div class="panel-header">
+          <h2>পরিবারের সদস্য</h2>
+          <div class="controls">
+            <input id="search" placeholder="নাম দিয়ে খুঁজুন..." />
+            <button id="clearAll" class="btn danger" title="সকল সদস্য মুছে ফেলুন">Clear All</button>
+          </div>
+        </div>
+
+        <div id="memberList" class="list-3d"></div>
+      </section>
+    </main>
+
+    <div id="modal" class="modal hidden">
+      <div class="modal-card">
+        <button class="modal-close" onclick="closeModal()">✕</button>
+        <div id="modalContent"></div>
+      </div>
+    </div>
+
+    <footer class="footer">
+      © Family Health • Created By Rafchan Sami
+    </footer>
+  </div>
+
+  <script>
+    const memberForm = document.getElementById('memberForm');
+    const memberList = document.getElementById('memberList');
+    const searchInput = document.getElementById('search');
+    const clearAllBtn = document.getElementById('clearAll');
+
+    let members = JSON.parse(localStorage.getItem('members') || '[]');
+
+    function saveMembers() {
+      localStorage.setItem('members', JSON.stringify(members));
+    }
+
+    function renderMembers(filter = '') {
+      memberList.innerHTML = '';
+      members.filter(m => m.name.toLowerCase().includes(filter.toLowerCase())).forEach((member, index) => {
+        const div = document.createElement('div');
+        div.className = 'list-item';
+        div.innerHTML = `
+          <span>${member.name} (${member.age} yrs)</span>
+          <div>
+            <button class='btn edit' onclick='editMember(${index})'>Edit</button>
+            <button class='btn delete' onclick='deleteMember(${index})'>Delete</button>
+          </div>
+        `;
+        memberList.appendChild(div);
+      });
+    }
+
+    function deleteMember(index) {
+      if (confirm('আপনি কি নিশ্চিতভাবে মুছে ফেলতে চান?')) {
+        members.splice(index, 1);
+        saveMembers();
+        renderMembers(searchInput.value);
+      }
+    }
+
+    clearAllBtn.addEventListener('click', () => {
+      if(confirm('আপনি কি নিশ্চিতভাবে সকল সদস্য মুছে ফেলতে চান?')){
+        members = [];
+        saveMembers();
+        renderMembers();
+      }
+    });
+
+    memberForm.addEventListener('submit', () => {
+      const member = {
+        name: document.getElementById('name').value,
+        age: document.getElementById('age').value,
+        blood: document.getElementById('blood').value,
+        height: document.getElementById('height').value,
+        weight: document.getElementById('weight').value,
+        notes: document.getElementById('notes').value
+      };
+
+      // Calculate BMI
+      const h = member.height / 100;
+      const w = member.weight;
+      const bmi = (w / (h * h)).toFixed(1);
+      document.getElementById('bmiValue').textContent = bmi;
+      let category = '';
+      if(bmi < 18.5) category='Underweight';
+      else if(bmi < 24.9) category='Normal';
+      else if(bmi < 29.9) category='Overweight';
+      else category='Obese';
+      document.getElementById('bmiCategory').textContent = category;
+
+      members.push(member);
+      saveMembers();
+      renderMembers(searchInput.value);
+      memberForm.reset();
+    });
+
+    searchInput.addEventListener('input', () => renderMembers(searchInput.value));
+
+    renderMembers();
+  </script>
+</body>
+</html>
