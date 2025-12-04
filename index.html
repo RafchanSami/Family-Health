@@ -13,7 +13,7 @@
         <div class="brand-front">Family<span>Health</span></div>
         <div class="brand-shadow"></div>
       </div>
-      <div class="tag">পরিবারের স্বাস্থ্য</div>
+      <div class="tag">পরিবারের স্বাস্থ্য — এক জায়গায়</div>
     </header>
 
     <main class="main-grid">
@@ -84,6 +84,7 @@
       </section>
     </main>
 
+    <!-- Modal: Edit / View Report -->
     <div id="modal" class="modal hidden">
       <div class="modal-card">
         <button class="modal-close" onclick="closeModal()">✕</button>
@@ -92,85 +93,10 @@
     </div>
 
     <footer class="footer">
-      © Family Health • Created By Rafchan Sami
+      © Family Health • Local Demo • Theme: Green & White (3D)
     </footer>
   </div>
 
-  <script>
-    const memberForm = document.getElementById('memberForm');
-    const memberList = document.getElementById('memberList');
-    const searchInput = document.getElementById('search');
-    const clearAllBtn = document.getElementById('clearAll');
-
-    let members = JSON.parse(localStorage.getItem('members') || '[]');
-
-    function saveMembers() {
-      localStorage.setItem('members', JSON.stringify(members));
-    }
-
-    function renderMembers(filter = '') {
-      memberList.innerHTML = '';
-      members.filter(m => m.name.toLowerCase().includes(filter.toLowerCase())).forEach((member, index) => {
-        const div = document.createElement('div');
-        div.className = 'list-item';
-        div.innerHTML = `
-          <span>${member.name} (${member.age} yrs)</span>
-          <div>
-            <button class='btn edit' onclick='editMember(${index})'>Edit</button>
-            <button class='btn delete' onclick='deleteMember(${index})'>Delete</button>
-          </div>
-        `;
-        memberList.appendChild(div);
-      });
-    }
-
-    function deleteMember(index) {
-      if (confirm('আপনি কি নিশ্চিতভাবে মুছে ফেলতে চান?')) {
-        members.splice(index, 1);
-        saveMembers();
-        renderMembers(searchInput.value);
-      }
-    }
-
-    clearAllBtn.addEventListener('click', () => {
-      if(confirm('আপনি কি নিশ্চিতভাবে সকল সদস্য মুছে ফেলতে চান?')){
-        members = [];
-        saveMembers();
-        renderMembers();
-      }
-    });
-
-    memberForm.addEventListener('submit', () => {
-      const member = {
-        name: document.getElementById('name').value,
-        age: document.getElementById('age').value,
-        blood: document.getElementById('blood').value,
-        height: document.getElementById('height').value,
-        weight: document.getElementById('weight').value,
-        notes: document.getElementById('notes').value
-      };
-
-      // Calculate BMI
-      const h = member.height / 100;
-      const w = member.weight;
-      const bmi = (w / (h * h)).toFixed(1);
-      document.getElementById('bmiValue').textContent = bmi;
-      let category = '';
-      if(bmi < 18.5) category='Underweight';
-      else if(bmi < 24.9) category='Normal';
-      else if(bmi < 29.9) category='Overweight';
-      else category='Obese';
-      document.getElementById('bmiCategory').textContent = category;
-
-      members.push(member);
-      saveMembers();
-      renderMembers(searchInput.value);
-      memberForm.reset();
-    });
-
-    searchInput.addEventListener('input', () => renderMembers(searchInput.value));
-
-    renderMembers();
-  </script>
+  <script src="js/app.js"></script>
 </body>
 </html>
